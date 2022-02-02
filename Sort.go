@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
 	list := []int{5, 9, 1, 6, 8, 14, 6, 49, 25, 4, 6, 3}
@@ -9,7 +11,9 @@ func main() {
 	// SelectSort(list)
 	// SelectSort2(list)
 	// InsertSort(list)
-	ShellSort(list)
+	// ShellSort(list)
+	// MergeSort1(list, 0, len(list))
+	MergeSort2(list, 0, len(list))
 	fmt.Println(list)
 }
 
@@ -134,4 +138,69 @@ func ShellSort(list []int) {
 
 		}
 	}
+}
+
+// 归并排序 自顶向下排序
+func MergeSort1(list []int, begin int, end int) {
+	if end-begin > 1 {
+		mid := begin + (end-begin+1)/2
+		MergeSort1(list, begin, mid)
+		MergeSort1(list, mid, end)
+		merge1(list, begin, mid, end)
+	}
+}
+
+// 归并排序，自底向上排序
+func MergeSort2(list []int, begin int, end int) {
+	// 步数为1开始，step长度的数组表示一个有序的数组
+	step := 1
+	// 范围大于 step 的数组才可以进入归并
+	for end-begin > step {
+		// 从头到尾对数组进行归并操作
+		// step << 1 = 2 * step 表示偏移到后两个有序数组将它们进行归并
+		for i := begin; i < end; i += step << 1 {
+			lo := i                // 第一个有序数组的上界
+			mid := lo + step       // 第一个有序数组的下界，第二个有序数组的上界
+			hi := lo + (step << 1) // 第二个有序数组的下界
+			// 不存在第二个数组，直接返回
+			if mid > end {
+				return
+			}
+			// 第二个数组长度不够
+			if hi > end {
+				hi = end
+			}
+			// 两个有序数组进行合并
+			merge1(list, lo, mid, hi)
+		}
+		// 上面的 step 长度的两个数组都归并成一个数组了，现在步长翻倍
+		step <<= 1
+	}
+}
+
+func merge1(list []int, begin, mid, end int) {
+	leftSize := mid - begin
+	rightSize := end - mid
+	newSize := leftSize + rightSize
+	result := make([]int, 0, newSize)
+	l, r := 0, 0
+	for l < leftSize && r < rightSize {
+		lValue := list[begin+l]
+		rValue := list[mid+r]
+		if lValue < rValue {
+			result = append(result, lValue)
+			l++
+		} else {
+			result = append(result, rValue)
+			r++
+		}
+	}
+	// 将剩下的元素追加到辅助数组后面
+	result = append(result, list[begin+l:mid]...)
+	result = append(result, list[mid+r:end]...)
+	// 将辅助数组的元素复制回原数组，释放辅助空间
+	for i := 0; i < newSize; i++ {
+		list[begin+i] = result[i]
+	}
+	return
 }
