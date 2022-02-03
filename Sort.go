@@ -13,16 +13,17 @@ func main() {
 	// InsertSort(list)
 	// ShellSort(list)
 	// MergeSort1(list, 0, len(list))
-	MergeSort2(list, 0, len(list))
+	// MergeSort2(list, 0, len(list))
+	MergeSort3(list, len(list))
 	fmt.Println(list)
 }
 
 // 冒泡排序
 func BubbleSort(list []int) {
-	num := len(list)
-	// 循环n-1次
-	for i := num - 1; i > 0; i-- {
-		for j := 0; j < num-1; j++ {
+	n := len(list)
+	// n-1次轮训
+	for i := 0; i < n-1; i++ {
+		for j := 0; j < n-1; j++ {
 			if list[j] > list[j+1] {
 				list[j], list[j+1] = list[j+1], list[j]
 			}
@@ -32,11 +33,11 @@ func BubbleSort(list []int) {
 
 // 优化的冒泡
 func BubbleSort2(list []int) {
-	num := len(list)
+	n := len(list)
 	didSwap := false
 	// 循环n-1次
-	for i := num - 1; i > 0; i-- {
-		for j := 0; j < i; j++ {
+	for i := 0; i < n-1; i++ {
+		for j := 0; j < n-i-1; j++ {
 			if list[j] > list[j+1] {
 				list[j], list[j+1] = list[j+1], list[j]
 				didSwap = true
@@ -49,12 +50,11 @@ func BubbleSort2(list []int) {
 }
 
 func SelectSort(list []int) {
-	num := len(list)
-	// 进行n-1次轮训
-	for i := 0; i < num-1; i++ {
-		minIndex := i  // 最小数索引
-		min := list[i] // 最小数
-		for j := i + 1; j < num; j++ {
+	n := len(list)
+	for i := 0; i < n-1; i++ {
+		minIndex := i  // 最小值索引
+		min := list[i] // 最小值
+		for j := minIndex; j < n; j++ {
 			if list[j] < min {
 				min = list[j]
 				minIndex = j
@@ -66,36 +66,39 @@ func SelectSort(list []int) {
 	}
 }
 
-// 改进的选择排序
+// 改进的选择排序(最大最小一起)
 func SelectSort2(list []int) {
-	num := len(list)
-	// 进行n-1次轮训
-	for i := 0; i < num/2; i++ {
-		minIndex := i // 最小数索引
-		maxIndex := i // 最大值索引
-		for j := i + 1; j < num-i; j++ {
-			// 找到最大值下标
+	n := len(list)
+	// n-1次轮训
+	for i := 0; i < n/2; i++ {
+		minIndex := i
+		maxIndex := i
+		for j := i + 1; j < n-i; j++ {
+			// 最大值
 			if list[j] > list[maxIndex] {
 				maxIndex = j // 这一轮这个是大的，直接 continue
 				continue
 			}
-			// 找到最小值下标
+			// 最小值
 			if list[j] < list[minIndex] {
 				minIndex = j
 			}
 		}
-		if maxIndex == i && minIndex != num-i-1 {
-			// 最大的元素在开头，最小值不在最后
-			// 大值与尾值交换 num-i-1尾值， maxIndex大值
-			list[num-i-1], list[maxIndex] = list[maxIndex], list[num-i-1]
-			// 小值放在最开头
-			list[i], list[minIndex] = list[minIndex], list[i]
-		} else if maxIndex == i && minIndex == num-i-1 {
+		if maxIndex == i && minIndex == n-i-1 {
+			// 最大值在开头，最小值在最后
+			// 直接交换
 			list[maxIndex], list[minIndex] = list[minIndex], list[maxIndex]
-		} else {
-			// 小值放开头
+		} else if maxIndex == 1 && minIndex != n-i-1 {
+			// 最大值在开头，最小值不在最后
+			// 先吧最大值放在最后
+			list[maxIndex], list[n-i-1] = list[n-i-1], list[maxIndex]
+			// 把最小值放前面
 			list[i], list[minIndex] = list[minIndex], list[i]
-			list[num-i-1], list[maxIndex] = list[maxIndex], list[num-i-1]
+		} else {
+			// 最小值放前面
+			list[i], list[minIndex] = list[minIndex], list[i]
+			// 交换最大值
+			list[n-i-1], list[maxIndex] = list[maxIndex], list[n-i-1]
 		}
 
 	}
@@ -103,12 +106,12 @@ func SelectSort2(list []int) {
 
 func InsertSort(list []int) {
 	n := len(list)
-
 	for i := 1; i < n; i++ {
-		currentNumber := list[i]
-		j := i - 1 //前面数字坐标
+		currentNumber := list[i] // 当前值
+		j := i - 1               //前面一个数字的坐标
+		// 当前值比前面的值小才比较
 		if currentNumber < list[j] {
-			for ; j >= 0 && currentNumber < list[j]; j-- {
+			for ; j >= 0 && list[j] > currentNumber; j-- {
 				list[j+1] = list[j]
 			}
 			list[j+1] = currentNumber
@@ -116,18 +119,13 @@ func InsertSort(list []int) {
 	}
 }
 
+// 把不那么有序的列表变得相对有序， 不同步长试用插入排序
 func ShellSort(list []int) {
 	n := len(list)
-
-	// 设置步长每次减半，直到1
-	for step := n / 2; step >= 1; step /= 2 {
-		// 开始插入排序
-		// 取 d = 6 对 [5 x x x x x 6 x x x x x] 进行直接插入排序，没有变化。
-		// 取 d = 3 对 [5 x x 6 x x 6 x x 4 x x] 进行直接插入排序，排完序后：[4 x x 5 x x 6 x x 6 x x]
-		// 取 d = 1 对 [4 9 1 5 8 14 6 49 25 6 6 3] 进行直接插入排序，因为 d=1 完全就是直接插入排序了
+	// 每次步长减半
+	for step := n >> 1; step >= 1; step >>= 1 {
+		// 根据步长，对分组后的数据进行插入排序
 		for i := step; i < n; i += step {
-			// 固定步长
-			// 比较
 			for j := i - step; j >= 0; j -= step {
 				if list[j+step] < list[j] {
 					list[j], list[j+step] = list[j+step], list[j]
@@ -135,12 +133,11 @@ func ShellSort(list []int) {
 				}
 				break
 			}
-
 		}
 	}
 }
 
-// 归并排序 自顶向下排序
+// 归并排序 自顶向下
 func MergeSort1(list []int, begin int, end int) {
 	if end-begin > 1 {
 		mid := begin + (end-begin+1)/2
@@ -150,7 +147,7 @@ func MergeSort1(list []int, begin int, end int) {
 	}
 }
 
-// 归并排序，自底向上排序
+// 归并排序 自底向上
 func MergeSort2(list []int, begin int, end int) {
 	// 步数为1开始，step长度的数组表示一个有序的数组
 	step := 1
@@ -203,4 +200,69 @@ func merge1(list []int, begin, mid, end int) {
 		list[begin+i] = result[i]
 	}
 	return
+}
+
+// 归并排序 自底向上优化
+// 小规模的数组，使用直接插入排序
+// 原地排序
+func MergeSort3(list []int, n int) {
+	// 按照3个一组进行排序，使用直接插入
+	blockSize := 3
+	a, b := 0, blockSize
+	for b <= n {
+		InsertSort(list[a:b])
+		a = b
+		b += blockSize
+	}
+	InsertSort(list[a:n])
+
+	// 把小数组进行归并操作
+	for blockSize < n {
+		a, b := 0, blockSize<<1
+		for b < n {
+			merge2(list, a, a+blockSize, b)
+			a = b
+			b += blockSize << 1
+		}
+		if m := a + blockSize; m < n {
+			merge2(list, a, m, n)
+		}
+		blockSize <<= 1
+	}
+}
+
+// 原地归并操作
+func merge2(list []int, begin, mid, end int) {
+	i, j, k := begin, mid, end-1 // 因为数组下标从0开始，所以 k = end-1
+	for j-i > 0 && k-j >= 0 {
+		step := 0
+		// 从 i 向右移动，找到第一个 list[i]>list[j]的索引
+		for j-i > 0 && list[i] <= list[j] {
+			i++
+		}
+		// 从 j 向右移动，找到第一个 list[j]>list[i]的索引
+		for k-j >= 0 && list[j] <= list[i] {
+			j++
+			step++
+		}
+		// 进行手摇翻转，将 list[i,mid] 和 [mid,j-1] 进行位置互换
+		// mid 是从 j 开始向右出发的，所以 mid = j-step
+		rotation(list, i, j-step, j-1)
+		i = i + step
+	}
+}
+
+func rotation(array []int, l, mid, r int) {
+	reverse(array, l, mid-1)
+	reverse(array, mid, r)
+	reverse(array, l, r)
+}
+
+func reverse(array []int, l, r int) {
+	for l < r {
+		// 左右互相交换
+		array[l], array[r] = array[r], array[l]
+		l++
+		r--
+	}
 }
