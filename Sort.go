@@ -14,7 +14,17 @@ func main() {
 	// ShellSort(list)
 	// MergeSort1(list, 0, len(list))
 	// MergeSort2(list, 0, len(list))
-	MergeSort3(list, len(list))
+	// MergeSort3(list, len(list))
+	// 构建最大堆
+	// h := NewHeap(list)
+	// for _, v := range list {
+	// 	h.Push(v)
+	// }
+	// // 将堆元素移除
+	// for range list {
+	// 	h.Pop()
+	// }
+	HeapSort(list)
 	fmt.Println(list)
 }
 
@@ -252,6 +262,7 @@ func merge2(list []int, begin, mid, end int) {
 	}
 }
 
+// 手摇算法
 func rotation(array []int, l, mid, r int) {
 	reverse(array, l, mid-1)
 	reverse(array, mid, r)
@@ -266,3 +277,122 @@ func reverse(array []int, l, r int) {
 		r--
 	}
 }
+
+// 最大堆 一颗完全二叉树
+// 最大堆要求所有节点元素不小于左右孩子
+type Heap struct {
+	Size int // 堆的大小
+	// 使用内部的数组来模拟树
+	// 一个节点下标为 i，那么父亲节点的下标为 (i-1)/2
+	// 一个节点下标为 i，那么左儿子的下标为 2i+1，右儿子下标为 2i+2
+	Array []int
+}
+
+func NewHeap(array []int) *Heap {
+	h := new(Heap)
+	h.Array = array
+	return h
+}
+
+// 最大堆插入元素
+func (h *Heap) Push(x int) {
+	if h.Size == 0 {
+		h.Array[0] = x
+		h.Size++
+		return
+	}
+	// 要插入的坐标
+	i := h.Size
+	for i > 0 {
+		// 父节点
+		parent := (i - 1) >> 1
+		if x <= h.Array[parent] {
+			break
+		}
+		h.Array[i] = h.Array[parent]
+		i = parent
+	}
+	h.Array[i] = x
+	h.Size++
+}
+
+func (h *Heap) Pop() int {
+	if h.Size == 0 {
+		return -1
+	}
+	ret := h.Array[0]
+	h.Size--
+	x := h.Array[h.Size]
+	h.Array[h.Size] = ret
+
+	i := 0
+	for {
+		a := i<<1 + 1
+		b := i<<1 + 2
+		// 左儿子下标超出了，表示没有左子树，那么右子树也没有，直接返回
+		if a >= h.Size {
+			break
+		}
+		// 有右子树，拿到两个子节点中较大节点的下标
+		if b < h.Size && h.Array[b] > h.Array[a] {
+			a = b
+		}
+		// 父亲节点的值都大于或等于两个儿子较大的那个，不需要向下继续翻转了，返回
+		if x >= h.Array[a] {
+			break
+		}
+		// 将较大的儿子与父亲交换，维持这个最大堆的特征
+		h.Array[i] = h.Array[a]
+		// 继续往下操作
+		i = a
+	}
+	// 将最后一个元素的值 x 放在不会再翻转的位置
+	h.Array[i] = x
+	return ret
+}
+
+func HeapSort(list []int) {
+	count := len(list)
+	// 最底层叶子
+	start := count>>1 + 1
+	end := count - 1
+	for start >= 0 {
+		sift(list, start, count)
+		start--
+	}
+	// 下沉结束 排序
+    // 元素大于2个的最大堆才可以移除
+    for end > 0 {
+        // 将堆顶元素与堆尾元素互换，表示移除最大堆元素
+        list[end], list[0] = list[0], list[end]
+        // 对堆顶进行下沉操作
+        sift(list, 0, end)
+        // 一直移除堆顶元素
+        end--
+    }
+}
+
+// 下沉操作，需要下沉的元素时 array[start]，参数 count 只要用来判断是否到底堆底，使得下沉结束
+func sift(array []int, start, count int) {
+    // 父亲节点
+    root := start
+    // 左儿子
+    child := root*2 + 1
+    // 如果有下一代
+    for child < count {
+        // 右儿子比左儿子大，那么要翻转的儿子改为右儿子
+        if count-child > 1 && array[child] < array[child+1] {
+            child++
+        }
+        // 父亲节点比儿子小，那么将父亲和儿子位置交换
+        if array[root] < array[child] {
+            array[root], array[child] = array[child], array[root]
+            // 继续往下沉
+            root = child
+            child = root*2 + 1
+        } else {
+            return
+        }
+    }
+}
+
